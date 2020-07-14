@@ -20,7 +20,7 @@ VERSIONS="
 "
 
 PACKAGES="
-    opam;git://github.com/ocaml/opam.git
+    opam-devel;git://github.com/ocaml/opam.git
     dune;git://github.com/ocaml/dune.git
     merlin;git://github.com/ocaml/merlin.git
     ocaml-lsp-server;git://github.com/ocaml/ocaml-lsp.git

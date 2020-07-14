@@ -1,15 +1,21 @@
 #!/bin/bash
 
 function send_msg_aux {
-    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$1\"}" "$2"
+    curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"$1\"}" "$2"
 }
 
 function send_debug_msg {
-    send_msg "$1" "$(cat debug-service.txt)"
+    send_msg_aux "$1" "$(cat debug-service.txt)"
 }
 
 function send_msg {
-    send_msg "$1" "$(cat service.txt)"
+    send_msg_aux "$1" "$(cat service.txt)"
+}
+
+msg=
+
+function add_msg {
+    msg+="${msg:+\n}$1"
 }
 
 distro=debian-10
@@ -47,51 +53,55 @@ for pkg in $PACKAGES; do
     build="
         git -C opam-repository pull origin master
         opam update
-        opam depext -iv '$pkgname'
-        if [ \$? = 20 ]; then
-            opam pin add "$repo"
-            if [ \$? = 20 ]; then
+        opam depext -iv '$pkgname' && res=0 || res=\$?
+        if [ \$res = 20 ]; then
+            opam pin add "$repo" && res=0 || res=\$?
+            if [ \$res = 20 ]; then
                 opam repository add alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
-                opam depext -iv '$pkgname'
-                if [ \$? = 20 ]; then
+                opam depext -iv '$pkgname' && res=0 || res=\$?
+                if [ \$res = 20 ]; then
                     opam pin remove "$repo"
-                    opam depext -iv '$pkgname'
-                    echo step-4=\$?
+                    opam depext -iv '$pkgname' && res=0 || res=\$?
+                    echo step=4=\$res
                     exit 0
                 fi
-                echo step-3=\$?
+                echo step=3=\$res
                 exit 0
             fi
-            echo step-2=\$?
+            echo step=2=\$res
             exit 0
         fi
-        echo step-1=\$?
+        echo step=1=\$res
         exit 0
     "
 
     for ver in $VERSIONS; do
         ver_name=$(echo "$ver" | cut -d: -f1)
         ver=$(echo "$ver" | cut -d: -f2)
+        log="$pkgname-$ver.log"
 
-        log=$(echo "$build" | docker run --rm -i ocurrent/opam:$distro-ocaml-$ver bash -ex)
-        state=$(echo "$log" | grep "echo step-")
-        state_num=$(echo "$state" | cut -d- -f2)
-        state=$(echo "$state" | cut -d= -f2)
+        echo "Checking $pkgname on OCaml $ver..."
 
-        case "$state/$state_num" in
-            0,1) msg="$pkgname has a stable version compatible with OCaml $ver ($ver_name)";;
-            0,2) msg="$pkgname has its master branch compatible with OCaml $ver ($ver_name)";;
-            0,3) msg="$pkgname has its master branch compatible with OCaml $ver ($ver_name) but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
-            0,4) msg="$pkgname has some PR opened compatible with OCaml $ver ($ver_name). See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+        echo "$build" | docker run --rm -i ocurrent/opam:$distro-ocaml-$ver bash -ex &> "$log"
+
+        state=$(cat "$log" | grep "echo step=")
+        state_num=$(echo "$state" | cut -d= -f2)
+        state=$(echo "$state" | cut -d= -f3)
+
+        case "$state,$state_num" in
+            0,1) add_msg "$pkgname has a stable version compatible with OCaml $ver ($ver_name)";;
+            0,2) add_msg "$pkgname has its master branch compatible with OCaml $ver ($ver_name)";;
+            0,3) add_msg "$pkgname has its master branch compatible with OCaml $ver ($ver_name) but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+            0,4) add_msg "$pkgname has some PR opened compatible with OCaml $ver ($ver_name). See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
            31,*)
-                if grep -q "^+- The following actions were aborted$"; then
-                    msg="Some dependencies of $pkgname failed with OCaml $ver ($ver_name)"
+                if grep -q "^+- The following actions were aborted$" "$log"; then
+                    add_msg "Some dependencies of $pkgname failed with OCaml $ver ($ver_name)"
                 else
-                    msg="$pkgname failed to build with OCaml $ver ($ver_name)"
+                    add_msg "$pkgname failed to build with OCaml $ver ($ver_name)"
                 fi;;
             *) send_debug_msg "Something went wrong while testing $pkgname on OCaml $ver"; exit 1;;
         esac
-
-        send_msg "$msg"
     done
 done
+
+send_msg "$msg"

@@ -90,16 +90,16 @@ for pkg in $PACKAGES; do
         state=$(echo "$state" | cut -d= -f3)
 
         case "$state,$state_num" in
-            0,1) add_msg "$pkgname has a stable version compatible with OCaml $ver ($ver_name).";;
-            0,2) add_msg "$pkgname has its master branch compatible with OCaml $ver ($ver_name).";;
-            0,3) add_msg "$pkgname has its master branch compatible with OCaml $ver ($ver_name) but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
-            0,4) add_msg "$pkgname has some PR opened compatible with OCaml $ver ($ver_name). See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
-           20,*) add_msg "$pkgname is not compatible with OCaml $ver ($ver_name) yet.";;
+            0,1) add_msg ":green_heart: \`$pkgname\` has a stable version compatible with OCaml $ver ($ver_name).";;
+            0,2) add_msg ":yellow_heart: \`$pkgname\` has its master branch compatible with OCaml $ver ($ver_name).";;
+            0,3) add_msg ":yellow_heart: \`$pkgname\` has its master branch compatible with OCaml $ver ($ver_name) but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+            0,4) add_msg ":vertical_traffic_light: \`$pkgname\` has some PR opened compatible with OCaml $ver ($ver_name). See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+           20,*) add_msg ":construction: \`$pkgname\` is not compatible with OCaml $ver ($ver_name) yet.";;
            31,*)
                 if grep -q "^+- The following actions were aborted$" "$log"; then
-                    add_msg "Some dependencies of $pkgname failed with OCaml $ver ($ver_name)."
+                    add_msg ":triangular_flag_on_post: Some dependencies of \`$pkgname\` failed with OCaml $ver ($ver_name)."
                 else
-                    add_msg "$pkgname failed to build with OCaml $ver ($ver_name)."
+                    add_msg ":triangular_flag_on_post: \`$pkgname\` failed to build with OCaml $ver ($ver_name)."
                 fi;;
             *) send_debug_msg "Something went wrong while testing $pkgname on OCaml $ver."; exit 1;;
         esac

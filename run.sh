@@ -53,15 +53,16 @@ for pkg in $PACKAGES; do
     build="
         git -C opam-repository pull origin master
         opam update
-        opam depext -iv '$pkgname' && res=0 || res=\$?
+        opam depext -ivj72 '$pkgname' && res=0 || res=\$?
         if [ \$res = 20 ]; then
-            opam pin add "$repo" && res=0 || res=\$?
+            opam pin add -yn "$repo"
+            opam depext -ivj72 '$pkgname' && res=0 || res=\$?
             if [ \$res = 20 ]; then
-                opam repository add alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
-                opam depext -iv '$pkgname' && res=0 || res=\$?
+                opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                 if [ \$res = 20 ]; then
                     opam pin remove "$repo"
-                    opam depext -iv '$pkgname' && res=0 || res=\$?
+                    opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                     echo step=4=\$res
                     exit 0
                 fi
@@ -89,17 +90,18 @@ for pkg in $PACKAGES; do
         state=$(echo "$state" | cut -d= -f3)
 
         case "$state,$state_num" in
-            0,1) add_msg "$pkgname has a stable version compatible with OCaml $ver ($ver_name)";;
-            0,2) add_msg "$pkgname has its master branch compatible with OCaml $ver ($ver_name)";;
+            0,1) add_msg "$pkgname has a stable version compatible with OCaml $ver ($ver_name).";;
+            0,2) add_msg "$pkgname has its master branch compatible with OCaml $ver ($ver_name).";;
             0,3) add_msg "$pkgname has its master branch compatible with OCaml $ver ($ver_name) but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
             0,4) add_msg "$pkgname has some PR opened compatible with OCaml $ver ($ver_name). See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+           20,*) add_msg "$pkgname is not compatible with OCaml $ver ($ver_name) yet.";;
            31,*)
                 if grep -q "^+- The following actions were aborted$" "$log"; then
-                    add_msg "Some dependencies of $pkgname failed with OCaml $ver ($ver_name)"
+                    add_msg "Some dependencies of $pkgname failed with OCaml $ver ($ver_name)."
                 else
-                    add_msg "$pkgname failed to build with OCaml $ver ($ver_name)"
+                    add_msg "$pkgname failed to build with OCaml $ver ($ver_name)."
                 fi;;
-            *) send_debug_msg "Something went wrong while testing $pkgname on OCaml $ver"; exit 1;;
+            *) send_debug_msg "Something went wrong while testing $pkgname on OCaml $ver."; exit 1;;
         esac
     done
 done

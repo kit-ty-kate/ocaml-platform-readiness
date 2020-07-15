@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function send_msg_aux {
-    curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"$1\"}" "$2"
+    curl -s -X POST -H 'Content-type: application/json' --data "{\"type\":\"mrkdwn\", \"text\":\"$1\"}" "$2"
 }
 
 function send_debug_msg {
@@ -46,39 +46,44 @@ PACKAGES="
 # TODO: Test the infrastructure section
 # TODO: Test git://github.com/ocamllabs/vscode-ocaml-platform.git (doesn't use dune)
 
-for pkg in $PACKAGES; do
-    pkgname=$(echo "$pkg" | cut -d';' -f1)
-    repo=$(echo "$pkg" | cut -d';' -f2)
+for ver in $VERSIONS; do
+    ver_name=$(echo "$ver" | cut -d: -f1)
+    ver=$(echo "$ver" | cut -d: -f2)
 
-    build="
-        git -C opam-repository pull origin master
-        opam update
-        opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-        if [ \$res = 20 ]; then
-            opam pin add -yn "$repo"
+    add_msg ""
+    add_msg ""
+    add_msg "On OCaml $ver ($ver_name):"
+
+    for pkg in $PACKAGES; do
+        pkgname=$(echo "$pkg" | cut -d';' -f1)
+        repo=$(echo "$pkg" | cut -d';' -f2)
+
+        build="
+            git -C opam-repository pull origin master
+            opam update
             opam depext -ivj72 '$pkgname' && res=0 || res=\$?
             if [ \$res = 20 ]; then
-                opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                opam pin add -yn "$repo"
                 opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                 if [ \$res = 20 ]; then
-                    opam pin remove "$repo"
+                    opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                    echo step=4=\$res
+                    if [ \$res = 20 ]; then
+                        opam pin remove "$repo"
+                        opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                        echo step=4=\$res
+                        exit 0
+                    fi
+                    echo step=3=\$res
                     exit 0
                 fi
-                echo step=3=\$res
+                echo step=2=\$res
                 exit 0
             fi
-            echo step=2=\$res
+            echo step=1=\$res
             exit 0
-        fi
-        echo step=1=\$res
-        exit 0
-    "
+        "
 
-    for ver in $VERSIONS; do
-        ver_name=$(echo "$ver" | cut -d: -f1)
-        ver=$(echo "$ver" | cut -d: -f2)
         log="$pkgname-$ver.log"
 
         echo "Checking $pkgname on OCaml $ver..."
@@ -90,16 +95,16 @@ for pkg in $PACKAGES; do
         state=$(echo "$state" | cut -d= -f3)
 
         case "$state,$state_num" in
-            0,1) add_msg ":green_heart: \`$pkgname\` has a stable version compatible with OCaml $ver ($ver_name).";;
-            0,2) add_msg ":yellow_heart: \`$pkgname\` has its master branch compatible with OCaml $ver ($ver_name).";;
-            0,3) add_msg ":yellow_heart: \`$pkgname\` has its master branch compatible with OCaml $ver ($ver_name) but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
-            0,4) add_msg ":vertical_traffic_light: \`$pkgname\` has some PR opened compatible with OCaml $ver ($ver_name). See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
-           20,*) add_msg ":construction: \`$pkgname\` is not compatible with OCaml $ver ($ver_name) yet.";;
+            0,1) add_msg "      - :green_heart: \`$pkgname\` has a stable version compatible.";;
+            0,2) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible.";;
+            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+            0,4) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR opened compatible. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+           20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;
            31,*)
                 if grep -q "^+- The following actions were aborted$" "$log"; then
-                    add_msg ":triangular_flag_on_post: Some dependencies of \`$pkgname\` failed with OCaml $ver ($ver_name)."
+                    add_msg "      - :triangular_flag_on_post: Some dependencies of \`$pkgname\` failed."
                 else
-                    add_msg ":triangular_flag_on_post: \`$pkgname\` failed to build with OCaml $ver ($ver_name)."
+                    add_msg "      - :triangular_flag_on_post: \`$pkgname\` failed to build."
                 fi;;
             *) send_debug_msg "Something went wrong while testing $pkgname on OCaml $ver."; exit 1;;
         esac

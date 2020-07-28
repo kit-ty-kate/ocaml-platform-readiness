@@ -104,10 +104,10 @@ for ver in $VERSIONS; do
            20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;
            31,*)
                 case "$state_num" in
-                1) location="in their stable versions."
-                2) location="using its master branch."
-                3) location="using its master branch and $opam_alpha_repository."
-                4) location="using a supposedly compatible branch. See $opam_alpha_repository for more details."
+                1) location="in their stable versions.";;
+                2) location="using its master branch.";;
+                3) location="using its master branch and $opam_alpha_repository.";;
+                4) location="using a supposedly compatible branch. See $opam_alpha_repository for more details.";;
                 *) send_debug_msg "Something went wrong. Got state_num = $state_num..."; exit 1;;
                 esac
                 if grep -q "^+- The following actions were aborted$" "$log"; then

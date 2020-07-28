@@ -94,17 +94,26 @@ for ver in $VERSIONS; do
         state_num=$(echo "$state" | cut -d= -f2)
         state=$(echo "$state" | cut -d= -f3)
 
+        opam_alpha_repository="<https://github.com/kit-ty-kate/opam-alpha-repository.git|opam-alpha-repository>"
+
         case "$state,$state_num" in
             0,1) add_msg "      - :green_heart: \`$pkgname\` has a stable version compatible.";;
             0,2) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible.";;
-            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible but some of its dependencies are still to be released. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
-            0,4) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR opened compatible. See https://github.com/kit-ty-kate/opam-alpha-repository.git for more details.";;
+            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible but some of its dependencies are still to be released. See $opam_alpha_repository for more details.";;
+            0,4) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR opened compatible. See $opam_alpha_repository for more details.";;
            20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;
            31,*)
+                case "$state_num" in
+                1) location="in their stable versions."
+                2) location="using its master branch."
+                3) location="using its master branch and $opam_alpha_repository."
+                4) location="using a supposedly compatible branch. See $opam_alpha_repository for more details."
+                *) send_debug_msg "Something went wrong. Got state_num = $state_num..."; exit 1;;
+                esac
                 if grep -q "^+- The following actions were aborted$" "$log"; then
-                    add_msg "      - :triangular_flag_on_post: Some dependencies of \`$pkgname\` failed."
+                    add_msg "      - :triangular_flag_on_post: Some dependencies of \`$pkgname\` failed $location."
                 else
-                    add_msg "      - :triangular_flag_on_post: \`$pkgname\` failed to build."
+                    add_msg "      - :triangular_flag_on_post: \`$pkgname\` failed to build $location."
                 fi;;
             *) send_debug_msg "Something went wrong while testing $pkgname on OCaml $ver."; exit 1;;
         esac

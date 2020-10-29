@@ -29,6 +29,7 @@ PACKAGES="
     dune;git://github.com/ocaml/dune.git
     merlin;git://github.com/ocaml/merlin.git
     ocaml-lsp-server;git://github.com/ocaml/ocaml-lsp.git
+    vscode-ocaml-platform;git://github.com/ocamllabs/vscode-ocaml-platform.git
     odoc;git://github.com/ocaml/odoc.git
     ocamlformat;git://github.com/ocaml-ppx/ocamlformat.git
     ocp-indent;git://github.com/OCamlPro/ocp-indent.git
@@ -43,7 +44,6 @@ PACKAGES="
 "
 
 # TODO: Test the infrastructure section
-# TODO: Test git://github.com/ocamllabs/vscode-ocaml-platform.git (doesn't use dune)
 
 for ver in $VERSIONS; do
     ver_name=$(echo "$ver" | cut -d: -f1)

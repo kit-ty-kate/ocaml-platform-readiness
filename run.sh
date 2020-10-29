@@ -58,6 +58,7 @@ for ver in $VERSIONS; do
         repo=$(echo "$pkg" | cut -d';' -f2)
 
         build="
+            export OPAMSOLVERTIMEOUT=500
             git -C opam-repository pull origin master
             opam update
             opam depext -ivj72 '$pkgname' && res=0 || res=\$?

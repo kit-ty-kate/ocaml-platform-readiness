@@ -21,8 +21,7 @@ function add_msg {
 distro=debian-10
 
 VERSIONS="
-    beta:4.11
-    trunk:4.12
+    beta:4.12
 "
 
 PACKAGES="

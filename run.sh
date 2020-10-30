@@ -62,25 +62,30 @@ for ver in $VERSIONS; do
             git -C opam-repository pull origin master
             opam update
             opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+            step=1
             if [ \$res = 20 ]; then
                 opam pin add -yn "$repo"
                 opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                step=2
                 if [ \$res = 20 ]; then
                     opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                    step=3
                     if [ \$res = 20 ]; then
                         opam pin remove "$repo"
                         opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                        echo step=4=\$res
-                        exit 0
+                        step=4
                     fi
-                    echo step=3=\$res
-                    exit 0
                 fi
-                echo step=2=\$res
-                exit 0
             fi
-            echo step=1=\$res
+            if [ \$res = 0 ]; then
+                opam depext -itvj72 '$pkgname' && res_test=0 || res_test=\$?
+            else
+                res_test=31
+            fi
+            echo step=\$step
+            echo step_res=\$res
+            echo step_res_test=\$res_test
             exit 0
         "
 
@@ -90,17 +95,24 @@ for ver in $VERSIONS; do
 
         echo "$build" | docker run --rm -i ocurrent/opam:$distro-ocaml-$ver bash -ex &> "$log"
 
-        state=$(cat "$log" | grep "echo step=")
-        state_num=$(echo "$state" | cut -d= -f2)
-        state=$(echo "$state" | cut -d= -f3)
+        state_num=$(cat "$log" | grep "echo step=" | cut -d= -f2)
+        state=$(cat "$log" | grep "echo step_res=" | cut -d= -f2)
+        state_test=$(cat "$log" | grep "echo step_res_test=" | cut -d= -f2)
 
         opam_alpha_repository="<https://github.com/kit-ty-kate/opam-alpha-repository.git|opam-alpha-repository>"
 
+        case "$state_test" in
+            0) test_msg="succeeded :green_heart:";;
+           20) test_msg="could not be tested :yellow_heart:";;
+           31) test_msg="failed :triangular_flag_on_post:";;
+            *) send_debug_msg "Something went wrong. Got state_test = $state_test..."; exit 1;;
+        esac
+
         case "$state,$state_num" in
-            0,1) add_msg "      - :green_heart: \`$pkgname\` has a stable version compatible.";;
-            0,2) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible.";;
-            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible but some of its dependencies are still to be released. See $opam_alpha_repository for more details.";;
-            0,4) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR opened compatible. See $opam_alpha_repository for more details.";;
+            0,1) add_msg "      - :green_heart: \`$pkgname\` has a stable version compatible (tests: $test_msg).";;
+            0,2) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible (tests: $test_msg).";;
+            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible but some of its dependencies are still to be released (tests: $test_msg). See $opam_alpha_repository for more details.";;
+            0,4) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR opened compatible (tests: $test_msg). See $opam_alpha_repository for more details.";;
            20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;
            31,*)
                 case "$state_num" in

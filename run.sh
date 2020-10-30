@@ -105,7 +105,7 @@ for ver in $VERSIONS; do
 
         case "$state_test" in
             0) test_msg="succeeded :green_heart:";;
-           20) test_msg="could not be tested :yellow_heart:";;
+           20) test_msg="could not be tested :construction:";;
            31) test_msg="failed :triangular_flag_on_post:";;
             *) send_debug_msg "Something went wrong. Got state_test = $state_test..."; exit 1;;
         esac

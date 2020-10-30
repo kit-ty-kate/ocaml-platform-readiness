@@ -93,7 +93,7 @@ for ver in $VERSIONS; do
 
         echo "Checking $pkgname on OCaml $ver..."
 
-        echo "$build" | docker run --rm -i ocurrent/opam:$distro-ocaml-$ver bash -ex &> "$log"
+        echo "$build" | docker run --pull --rm -i ocurrent/opam:$distro-ocaml-$ver bash -ex &> "$log"
 
         state_num=$(cat "$log" | grep "echo step=" | cut -d= -f2)
         state=$(cat "$log" | grep "echo step_res=" | cut -d= -f2)

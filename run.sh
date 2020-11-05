@@ -79,7 +79,8 @@ for ver in $VERSIONS; do
                 fi
             fi
             if [ \$res = 0 ]; then
-                opam depext -itvj72 '$pkgname' && res_test=0 || res_test=\$?
+                opam depext -tv '$pkgname' || true
+                opam reinstall -tv '$pkgname' && res_test=0 || res_test=\$?
             else
                 res_test=31
             fi

@@ -49,6 +49,9 @@ for ver in $VERSIONS; do
     ver_name=$(echo "$ver" | cut -d: -f1)
     ver=$(echo "$ver" | cut -d: -f2)
 
+    docker_img=ocurrent/opam:$distro-ocaml-$ver
+    docker pull -q "$docker_img" &> /dev/null
+
     add_msg ""
     add_msg ""
     add_msg "On OCaml $ver ($ver_name):"
@@ -94,8 +97,6 @@ for ver in $VERSIONS; do
 
         echo "Checking $pkgname on OCaml $ver..."
 
-        docker_img=ocurrent/opam:$distro-ocaml-$ver
-        docker pull -q "$docker_img"
         echo "$build" | docker run --rm -i "$docker_img" bash -ex &> "$log"
 
         state_num=$(cat "$log" | grep "echo step=" | cut -d= -f2)

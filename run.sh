@@ -64,13 +64,17 @@ for ver in $VERSIONS; do
             export OPAMSOLVERTIMEOUT=500
             git -C opam-repository pull origin master
             opam update
-            opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
-            opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-            step=1
-            if [ \$res = 20 ]; then
-                opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+            if opam show '$pkgname'; then
+                opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
                 opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                step=2
+                step=1
+            fi
+            if [ \$res = 20 ]; then
+                if opam show '$pkgname'; then
+                    opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                    opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                    step=2
+                fi
                 if [ \$res = 20 ]; then
                     opam pin add -yn '$repo'
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?

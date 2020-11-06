@@ -80,7 +80,7 @@ for ver in $VERSIONS; do
                     opam pin add -yn '$repo'
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                     step=3
-                    if [ \$res = 20 ]; then
+                    if [ \$res = 20 -o \$res = 31 ]; then
                         if [ \$(opam show -f repository '$pkgname') = alpha ]; then
                             opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
                             opam depext -ivj72 '$pkgname' && res=0 || res=\$?

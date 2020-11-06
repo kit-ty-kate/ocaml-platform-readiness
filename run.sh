@@ -64,20 +64,23 @@ for ver in $VERSIONS; do
             export OPAMSOLVERTIMEOUT=500
             git -C opam-repository pull origin master
             opam update
+            opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
             opam depext -ivj72 '$pkgname' && res=0 || res=\$?
             step=1
             if [ \$res = 20 ]; then
-                opam pin add -yn "$repo"
+                opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
                 opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                 step=2
                 if [ \$res = 20 ]; then
-                    opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                    opam pin add -yn '$repo'
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                     step=3
                     if [ \$res = 20 ]; then
-                        opam pin remove "$repo"
-                        opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                        step=4
+                        if [ \$(opam show -f repository '$pkgname') = alpha ]; then
+                            opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
+                            opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                            step=4
+                        fi
                     fi
                 fi
             fi
@@ -113,15 +116,15 @@ for ver in $VERSIONS; do
         esac
 
         case "$state,$state_num" in
-            0,1) add_msg "      - :green_heart: \`$pkgname\` has a stable version compatible (tests: $test_msg).";;
-            0,2) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible (tests: $test_msg).";;
-            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible but some of its dependencies are still to be released (tests: $test_msg). See $opam_alpha_repository for more details.";;
+            0,1) add_msg "      - :green_heart: \`$pkgname\` has its latest stable version compatible (tests: $test_msg).";;
+            0,2) add_msg "      - :yellow_heart: \`$pkgname\` has its latest stable version compatible but some of its dependencies are still to be released (tests: $test_msg)";;
+            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible (tests: $test_msg)";;
             0,4) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR opened compatible (tests: $test_msg). See $opam_alpha_repository for more details.";;
            20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;
            31,*)
                 case "$state_num" in
-                1) location="in their stable versions.";;
-                2) location="using its master branch.";;
+                1) location="using its latest stable versions.";;
+                2) location="using its latest stable version.";;
                 3) location="using its master branch and $opam_alpha_repository.";;
                 4) location="using a supposedly compatible branch. See $opam_alpha_repository for more details.";;
                 *) send_debug_msg "Something went wrong. Got state_num = $state_num..."; exit 1;;

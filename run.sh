@@ -61,6 +61,7 @@ for ver in $VERSIONS; do
         repo=$(echo "$pkg" | cut -d';' -f2)
 
         build="
+            res=20
             export OPAMSOLVERTIMEOUT=500
             git -C opam-repository pull origin master
             opam update

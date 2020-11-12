@@ -1,5 +1,19 @@
 #!/bin/bash
 
+if test "$#" != 1; then
+    echo "Usage $0 (record|send|record-and-send)"
+    exit 1
+fi
+
+record=false
+send=false
+case "$1" in
+"record") record=true;;
+"send") send=true;;
+"record-and-send") record=true; send=true;;
+*) echo "Unknown command"; exit 1;;
+esac
+
 function send_msg_aux {
     curl -s -X POST -H 'Content-type: application/json' --data "{\"type\":\"mrkdwn\", \"text\":\"$1\"}" "$2"
 }
@@ -9,7 +23,11 @@ function send_debug_msg {
 }
 
 function send_msg {
-    send_msg_aux "$1" "$(cat service.txt)"
+    if $send; then
+        send_msg_aux "$1" "$(cat service.txt)"
+    else
+        send_msg_aux "$1" "$(cat debug-service.txt)"
+    fi
 }
 
 msg=
@@ -105,7 +123,9 @@ for ver in $VERSIONS; do
 
         echo "Checking $pkgname on OCaml $ver..."
 
-        echo "$build" | docker run --rm -i "$docker_img" bash -ex &> "$log"
+        if $record; then
+            echo "$build" | docker run --rm -i "$docker_img" bash -ex &> "$log"
+        fi
 
         state_num=$(cat "$log" | grep "echo step=" | cut -d= -f2)
         state=$(cat "$log" | grep "echo step_res=" | cut -d= -f2)

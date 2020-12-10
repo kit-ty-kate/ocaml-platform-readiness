@@ -84,27 +84,30 @@ for ver in $VERSIONS; do
             git -C opam-repository pull origin master
             opam update
             if opam show '$pkgname'; then
-                opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
-                opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                step=1
+                opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                if test \$(opam show -f repository '$pkgname') != alpha; then
+                    opam repository remove alpha
+                    opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
+                    opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                    opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                    step=1
+                fi
             fi
             if [ \$res = 20 ]; then
                 if opam show '$pkgname'; then
-                    opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
-                    opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                    step=2
+                    if test \$(opam show -f repository '$pkgname') != alpha; then
+                        opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                        step=2
+                    else
+                        opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
+                        opam depext -ivj72 '$pkgname' && res=0 || res=\$?
+                        step=3
+                    fi
                 fi
                 if [ \$res = 20 ]; then
                     opam pin add -yn '$repo'
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                    step=3
-                    if [ \$res = 20 -o \$res = 31 ]; then
-                        if [ \$(opam show -f repository '$pkgname') = alpha ]; then
-                            opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
-                            opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                            step=4
-                        fi
-                    fi
+                    step=4
                 fi
             fi
             if [ \$res = 0 ]; then
@@ -142,9 +145,9 @@ for ver in $VERSIONS; do
 
         case "$state,$state_num" in
             0,1) add_msg "      - :green_heart: \`$pkgname\` has its latest stable version compatible (tests: $test_msg).";;
-            0,2) add_msg "      - :yellow_heart: \`$pkgname\` has its latest stable version compatible but some of its dependencies are still to be released (tests: $test_msg)";;
-            0,3) add_msg "      - :yellow_heart: \`$pkgname\` has its master branch compatible (tests: $test_msg)";;
-            0,4) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR opened compatible (tests: $test_msg). See $opam_alpha_repository for more details.";;
+            0,2) add_msg "      - :yellow_heart: \`$pkgname\` needs some of its dependencies to be fixed/released (tests: $test_msg). See $opam_alpha_repository for more details.";;
+            0,3) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR that needs merging to be compatible (tests: $test_msg). See $opam_alpha_repository for more details.";;
+            0,4) add_msg "      - :yellow_heart: \`$pkgname\` needs to be released to become compatible (tests: $test_msg)";;
            20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;
            31,*)
                 case "$state_num" in

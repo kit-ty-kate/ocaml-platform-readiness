@@ -67,7 +67,7 @@ for ver in $VERSIONS; do
     ver_name=$(echo "$ver" | cut -d: -f1)
     ver=$(echo "$ver" | cut -d: -f2)
 
-    docker_img=ocurrent/opam:$distro-ocaml-$ver
+    docker_img=ocaml/opam:$distro-ocaml-$ver
     docker pull -q "$docker_img" &> /dev/null
 
     add_msg ""

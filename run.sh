@@ -39,7 +39,7 @@ function add_msg {
 distro=debian-10
 
 VERSIONS="
-    beta:4.12
+    alpha:4.13
 "
 
 PACKAGES="
@@ -47,7 +47,6 @@ PACKAGES="
     dune;git://github.com/ocaml/dune.git
     merlin;git://github.com/ocaml/merlin.git
     ocaml-lsp-server;git://github.com/ocaml/ocaml-lsp.git
-    vscode-ocaml-platform;git://github.com/ocamllabs/vscode-ocaml-platform.git
     odoc;git://github.com/ocaml/odoc.git
     ocamlformat;git://github.com/ocaml-ppx/ocamlformat.git
     ocp-indent;git://github.com/OCamlPro/ocp-indent.git
@@ -145,7 +144,7 @@ for ver in $VERSIONS; do
 
         case "$state,$state_num" in
             0,1) add_msg "      - :green_heart: \`$pkgname\` has its latest stable version compatible (tests: $test_msg).";;
-            0,2) add_msg "      - :yellow_heart: \`$pkgname\` needs some of its dependencies to be fixed/released (tests: $test_msg). See $opam_alpha_repository for more details.";;
+            0,2) add_msg "      - :yellow_heart: \`$pkgname\` needs some of its dependencies to be released, but succeeds otherwise (tests: $test_msg). See $opam_alpha_repository for more details.";;
             0,3) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR that needs merging to be compatible (tests: $test_msg). See $opam_alpha_repository for more details.";;
             0,4) add_msg "      - :yellow_heart: \`$pkgname\` needs to be released to become compatible (tests: $test_msg)";;
            20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;

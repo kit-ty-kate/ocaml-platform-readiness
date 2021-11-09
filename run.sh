@@ -36,10 +36,10 @@ function add_msg {
     msg+="${msg:+\n}$1"
 }
 
-distro=debian-10
+distro=debian-11
 
 VERSIONS="
-    alpha:4.13
+    alpha:4.14
 "
 
 PACKAGES="

@@ -89,7 +89,11 @@ for ver in $VERSIONS; do
                     opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                     opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
-                    step=1
+                    if opam show -fversion "$pkgname" | grep -q preview; then
+                        step=5
+                    else
+                        step=1
+                    fi
                 fi
             fi
             if [ \$res = 20 ]; then
@@ -147,6 +151,7 @@ for ver in $VERSIONS; do
             0,2) add_msg "      - :yellow_heart: \`$pkgname\` needs some of its dependencies to be released, but succeeds otherwise (tests: $test_msg). See $opam_alpha_repository for more details.";;
             0,3) add_msg "      - :vertical_traffic_light: \`$pkgname\` has some PR that needs merging to be compatible (tests: $test_msg). See $opam_alpha_repository for more details.";;
             0,4) add_msg "      - :yellow_heart: \`$pkgname\` needs to be released to become compatible (tests: $test_msg)";;
+            0,5) add_msg "      - :jigsaw: \`$pkgname\` has a preview in opam-repository but is not yet fully released (tests: $test_msg)";;
            20,*) add_msg "      - :construction: \`$pkgname\` is not compatible yet.";;
            31,*)
                 case "$state_num" in

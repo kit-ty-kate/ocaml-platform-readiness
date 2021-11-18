@@ -66,8 +66,18 @@ for ver in $VERSIONS; do
     ver_name=$(echo "$ver" | cut -d: -f1)
     ver=$(echo "$ver" | cut -d: -f2)
 
+    echo "Pulling docker image..."
     docker_img=ocaml/opam:$distro-ocaml-$ver
     docker pull -q "$docker_img" &> /dev/null
+
+    echo "Building base image..."
+    echo "
+      FROM $docker_img
+      ENV OPAMSOLVERTIMEOUT 500
+      RUN git -C opam-repository pull origin master && opam update
+      RUN opam upgrade
+    " | docker build --no-cache -t ocaml-platform-readiness - > /dev/null
+    docker_img=ocaml-platform-readiness
 
     add_msg ""
     add_msg ""
@@ -79,9 +89,6 @@ for ver in $VERSIONS; do
 
         build="
             res=20
-            export OPAMSOLVERTIMEOUT=500
-            git -C opam-repository pull origin master
-            opam update
             if opam show '$pkgname'; then
                 opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
                 if test \$(opam show -f repository '$pkgname') != alpha; then

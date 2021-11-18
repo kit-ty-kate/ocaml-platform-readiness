@@ -66,18 +66,20 @@ for ver in $VERSIONS; do
     ver_name=$(echo "$ver" | cut -d: -f1)
     ver=$(echo "$ver" | cut -d: -f2)
 
-    echo "Pulling docker image..."
-    docker_img=ocaml/opam:$distro-ocaml-$ver
-    docker pull -q "$docker_img" &> /dev/null
+    if $record; then
+        echo "Pulling docker image..."
+        docker_img=ocaml/opam:$distro-ocaml-$ver
+        docker pull -q "$docker_img" &> /dev/null
 
-    echo "Building base image..."
-    echo "
-      FROM $docker_img
-      ENV OPAMSOLVERTIMEOUT 500
-      RUN git -C opam-repository pull origin master && opam update
-      RUN opam upgrade && opam switch reinstall
-    " | docker build --no-cache -t ocaml-platform-readiness - > /dev/null
-    docker_img=ocaml-platform-readiness
+        echo "Building base image..."
+        echo "
+          FROM $docker_img
+          ENV OPAMSOLVERTIMEOUT 500
+          RUN git -C opam-repository pull origin master && opam update
+          RUN opam upgrade && opam switch reinstall
+        " | docker build --no-cache -t ocaml-platform-readiness - > /dev/null
+        docker_img=ocaml-platform-readiness
+    fi
 
     add_msg ""
     add_msg ""

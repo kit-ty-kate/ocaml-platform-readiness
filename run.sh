@@ -75,7 +75,7 @@ for ver in $VERSIONS; do
       FROM $docker_img
       ENV OPAMSOLVERTIMEOUT 500
       RUN git -C opam-repository pull origin master && opam update
-      RUN opam upgrade
+      RUN opam upgrade && opam switch reinstall
     " | docker build --no-cache -t ocaml-platform-readiness - > /dev/null
     docker_img=ocaml-platform-readiness
 

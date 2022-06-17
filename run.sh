@@ -39,7 +39,7 @@ function add_msg {
 distro=debian-11
 
 VERSIONS="
-    alpha:4.14
+    alpha:5.0
 "
 
 PACKAGES="
@@ -53,7 +53,6 @@ PACKAGES="
     ocamlfind;git://github.com/ocaml/ocamlfind.git
     ocamlbuild;git://github.com/ocaml/ocamlbuild.git
     ppxlib;git://github.com/ocaml-ppx/ppxlib.git
-    ocaml-migrate-parsetree;git://github.com/ocaml-ppx/ocaml-migrate-parsetree.git
     mdx;git://github.com/realworldocaml/mdx.git
     utop;git://github.com/ocaml-community/utop.git
     dune-release;git://github.com/ocamllabs/dune-release.git

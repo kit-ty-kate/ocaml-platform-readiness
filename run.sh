@@ -43,20 +43,20 @@ VERSIONS="
 "
 
 PACKAGES="
-    opam-devel;git://github.com/ocaml/opam.git
-    dune;git://github.com/ocaml/dune.git
-    merlin;git://github.com/ocaml/merlin.git
-    ocaml-lsp-server;git://github.com/ocaml/ocaml-lsp.git
-    odoc;git://github.com/ocaml/odoc.git
-    ocamlformat;git://github.com/ocaml-ppx/ocamlformat.git
-    ocp-indent;git://github.com/OCamlPro/ocp-indent.git
-    ocamlfind;git://github.com/ocaml/ocamlfind.git
-    ocamlbuild;git://github.com/ocaml/ocamlbuild.git
-    ppxlib;git://github.com/ocaml-ppx/ppxlib.git
-    mdx;git://github.com/realworldocaml/mdx.git
-    utop;git://github.com/ocaml-community/utop.git
-    dune-release;git://github.com/ocamllabs/dune-release.git
-    opam-publish;git://github.com/ocaml/opam-publish.git
+    opam-devel;https://github.com/ocaml/opam.git
+    dune;https://github.com/ocaml/dune.git
+    merlin;https://github.com/ocaml/merlin.git
+    ocaml-lsp-server;https://github.com/ocaml/ocaml-lsp.git
+    odoc;https://github.com/ocaml/odoc.git
+    ocamlformat;https://github.com/ocaml-ppx/ocamlformat.git
+    ocp-indent;https://github.com/OCamlPro/ocp-indent.git
+    ocamlfind;https://github.com/ocaml/ocamlfind.git
+    ocamlbuild;https://github.com/ocaml/ocamlbuild.git
+    ppxlib;https://github.com/ocaml-ppx/ppxlib.git
+    mdx;https://github.com/realworldocaml/mdx.git
+    utop;https://github.com/ocaml-community/utop.git
+    dune-release;https://github.com/ocamllabs/dune-release.git
+    opam-publish;https://github.com/ocaml/opam-publish.git
 "
 
 # TODO: Test the infrastructure section
@@ -91,12 +91,12 @@ for ver in $VERSIONS; do
         build="
             res=20
             if opam show '$pkgname'; then
-                opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                opam repository add -a alpha https://github.com/kit-ty-kate/opam-alpha-repository.git
                 if test \$(opam show -f repository '$pkgname') != alpha; then
                     opam repository remove alpha
                     opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
-                    opam repository add -a alpha git://github.com/kit-ty-kate/opam-alpha-repository.git
+                    opam repository add -a alpha https://github.com/kit-ty-kate/opam-alpha-repository.git
                     if opam show -fversion "$pkgname" | grep -q preview; then
                         step=5
                     else

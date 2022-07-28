@@ -94,10 +94,10 @@ for ver in $VERSIONS; do
                 opam repository add -a alpha https://github.com/kit-ty-kate/opam-alpha-repository.git
                 if test \$(opam show -f repository '$pkgname') != alpha; then
                     opam repository remove alpha
-                    opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
+                    opam pin add -ynk version '$pkgname' \$(opam show -f version '$pkgname')
                     opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                     opam repository add -a alpha https://github.com/kit-ty-kate/opam-alpha-repository.git
-                    if opam show -fversion "$pkgname" | grep -q preview; then
+                    if opam show -f version '$pkgname' | grep -q preview; then
                         step=5
                     else
                         step=1
@@ -110,7 +110,7 @@ for ver in $VERSIONS; do
                         opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                         step=2
                     else
-                        opam pin add -ynk version '$pkgname' \$(opam show -f version: '$pkgname' | sed 's/\"//g')
+                        opam pin add -ynk version '$pkgname' \$(opam show -f version '$pkgname')
                         opam depext -ivj72 '$pkgname' && res=0 || res=\$?
                         step=3
                     fi
